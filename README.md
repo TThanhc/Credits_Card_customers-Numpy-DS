@@ -95,12 +95,12 @@ Việc dự đoán khách hàng rời đi (Customer Churn Prediction) là tối 
 
 ### Giải thích Implement bằng NumPy
 *   Toàn bộ các phép toán vector, ma trận (như phép nhân ma trận `np.dot`, tính tổng `np.sum`, tính lũy thừa `np.exp`, tránh tràn số `np.clip`) được sử dụng để cài đặt các công thức toán học trên mà không dùng vòng lặp (Vectorization).
-*   Sử dụng broadcasting trong `One-hot Encoding` để thực hiện tạo ma trận có các mới có số cột là các giá trị duy nhất (unique values) của đặc trưng cần mã hóa và số dòng bằng số dòng dữ liệu.
+*   Sử dụng broadcasting trong cài đặt hàm `One-hot Encoding` để thực hiện tạo ma trận có các mới có số cột là các giá trị duy nhất (unique values) của đặc trưng cần mã hóa và số dòng bằng số dòng dữ liệu.
     - Mảng unique có kích thước $(k, )$
     - Cột dữ liệu của nó có dạng $(n, 1)$
     - Do cơ chế `broadcasting` thì kích thước của mảng unique sẽ biến thành $(1, k)$ và cuối cùng cả 2 sẽ có cùng kích thước $(n, k)$
 *   Sử dụng `np.vectorize` để thao tác trên toàn bộ ma trận không cần vòng lặp.
-*   Trong `Ordinal Encoding` sử dụng fancy indexing, dùng các con số index trong danh sách `inv` để lấy ra Value tương ứng, ...
+*   Trong cài đặt hàm `Ordinal Encoding` sử dụng fancy indexing, dùng các con số index trong danh sách `inv` để lấy ra Value tương ứng, ...
 
 ## 5. Installation & Setup
 
