@@ -15,7 +15,7 @@ def convert_numeric(x):
         return x
     
     try:
-        # 1. Thử ép kiểu INT (số nguyên)
+        # 1. Thử ép kiểu INT
         # Không phải '1.335' hay '9.3e-05'
         if '.' not in x and 'e' not in x.lower():
             return int(x)
@@ -23,7 +23,7 @@ def convert_numeric(x):
         pass 
     
     try:
-        # 2. Thử ép kiểu FLOAT (số thực)
+        # 2. Thử ép kiểu FLOAT
         # Ép kiểu '1.335' và '9.3448e-05'
         return float(x)
     except (ValueError, TypeError):
@@ -39,12 +39,7 @@ def load_csv(DATA_PATH):
 
 def one_hot_encoding(col):
     unique_vals = np.unique(col)
-    
-    col_reshaped = col.reshape(-1, 1) # shape (n, 1)
-    # Dùng broadcasting để so sánh (n, 1) với (k,)
-    # NumPy sẽ so sánh mỗi phần tử trong 'col_reshaped'
-    # với TẤT CẢ các phần tử trong 'unique_vals'.
-    # Kết quả là một ma trận Boolean (True/False) kích thước (n, k)
+    col_reshaped = col.reshape(-1, 1) 
     boolean_matrix = (col_reshaped == unique_vals)
     
     return boolean_matrix.astype(int), unique_vals
@@ -55,4 +50,4 @@ def ordinal_encoding(col_idx, col_dict, col):
     sort_idx = np.argsort(col_keys)
     mapped = col_values[sort_idx]
     col_uni, inv = np.unique(col, return_inverse=True)
-    return mapped[inv] # fancy indexing
+    return mapped[inv]
