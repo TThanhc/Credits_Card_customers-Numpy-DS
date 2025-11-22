@@ -80,7 +80,7 @@ def evaluate_metrics(y_true, y_pred):
     # 2. Precision: Trong số dự đoán là khách hàng rời đi, bao nhiêu thực sự là rời đi? 
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     
-    # 3. Recall (Sensitivity): Trong số khách hàng thực sự Churn, tìm ra được bao nhiêu?
+    # 3. Recall (Sensitivity): Trong số khách hàng thực sự rời đi, tìm ra được bao nhiêu?
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     
     # 4. F1-Score: Trung bình điều hòa của Precision và Recall
@@ -88,6 +88,7 @@ def evaluate_metrics(y_true, y_pred):
     
     return accuracy, precision, recall, f1
 
+# Mô hình LogisticRegressionNumPy
 class LogisticRegressionNumPy:
     def __init__(self, learning_rate=0.01, num_iterations=1000):
         self.lr = learning_rate
