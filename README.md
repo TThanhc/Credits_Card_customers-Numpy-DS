@@ -37,7 +37,7 @@
 Bài toán là một nhiệm vụ **phân loại (Classification)**: Dựa trên các thông tin về khách hàng (giới tính, độ tuổi, thu nhập, tình trạng hôn nhân, chỉ số tín dụng, v.v.) và hoạt động thẻ (số lượng giao dịch, tổng chi tiêu), dự đoán xem tài khoản của khách hàng đó **đã rời đi (Attrited)** hay **còn tồn tại (Existing)**.
 
 ### Động lực và Ứng dụng thực tế
-Việc dự đoán khách hàng rời đi (Customer Churn Prediction) là tối quan trọng trong ngành Ngân hàng và Tài chính.
+Việc dự đoán khách hàng rời đi (Attrited Customer Prediction) là tối quan trọng trong ngành Ngân hàng và Tài chính.
 *   **Động lực:** Chi phí để giữ chân một khách hàng hiện tại thấp hơn nhiều so với chi phí thu hút một khách hàng mới.
 *   **Ứng dụng:** Mô hình dự đoán giúp ngân hàng xác định sớm những khách hàng có nguy cơ rời đi cao, từ đó triển khai các chiến lược giữ chân (Retention Strategies) kịp thời như cung cấp ưu đãi đặc biệt, cải thiện dịch vụ chăm sóc khách hàng.
 
@@ -56,7 +56,7 @@ Việc dự đoán khách hàng rời đi (Customer Churn Prediction) là tối 
 *   **Mô tả:** Dữ liệu chứa thông tin chi tiết về khách hàng thẻ tín dụng của một ngân hàng, bao gồm các chỉ số nhân khẩu học, chỉ số tín dụng, và tình trạng tài khoản.
 
 ### Mô tả Features
-(Sẽ được cập nhật sau khi phân tích data exploration ban đầu. Dưới đây là ví dụ các cột chính)
+Các đặc trưng chính:
 *   `CLIENTNUM`: Số khách hàng (ID duy nhất).
 *   `Attrition_Flag`: Biến mục tiêu (Existing Customer / Attrited Customer).
 *   `Customer_Age`: Tuổi của khách hàng.
@@ -70,9 +70,8 @@ Việc dự đoán khách hàng rời đi (Customer Churn Prediction) là tối 
 *   ...
 
 ### Kích thước và Đặc điểm Dữ liệu
-(Sẽ được cập nhật sau khi đọc và load dữ liệu bằng NumPy)
 *   **Kích thước:** Ví dụ: 10127 hàng, 23 cột.
-*   **Đặc điểm:** Dữ liệu bao gồm các cột dạng số (Age, Credit Limit, Total Trans Amt) và cột dạng phân loại (Gender, Income Category, Card Category). Cần xử lý Missing Values, mã hóa dữ liệu phân loại và chuẩn hóa/điều chuẩn dữ liệu số.
+*   **Đặc điểm:** Dữ liệu bao gồm các cột dạng số (Age, Credit Limit, Total Trans Amt, ...) và cột dạng phân loại (Gender, Income Category, Card Category). Cần xử lý Missing Values, mã hóa dữ liệu phân loại và chuẩn hóa/điều chuẩn dữ liệu số.
 
 ## 4. Method
 
@@ -86,20 +85,23 @@ Việc dự đoán khách hàng rời đi (Customer Churn Prediction) là tối 
 3.  **Tách Dữ liệu:** Chia dữ liệu thành tập huấn luyện (Training set) và tập kiểm tra (Testing set).
 
 ### Thuật toán sử dụng
-*   **Thuật toán:** Logistic Regression.
-*   **Công thức (Ví dụ cho Logistic Regression):**
+*   **Thuật toán:** `Logistic Regression`.
+*   **Công thức toán học cho Logistic Regression:**
     *   Hàm tuyến tính: $z = \mathbf{w}^T \mathbf{x} + b$
     *   Hàm Sigmoid (Hàm kích hoạt): $\sigma(z) = \frac{1}{1 + e^{-z}}$
-    *   Hàm mất mát (Binary Cross-Entropy): $L(\mathbf{w}, b) = -\frac{1}{m} \sum_{i=1}^{m} [y^{(i)} \log(\hat{y}^{(i)}) + (1 - y^{(i)}) \log(1 - \hat{y}^{(i)})]$
+    *   Hàm mất mát (Binary Cross-Entropy): 
+    
+    $L(\mathbf{w}, b) = -\frac{1}{m} \sum_{i=1}^{m} [y^{(i)} \log(\hat{y}^{(i)}) + (1 - y^{(i)}) \log(1 - \hat{y}^{(i)})]$
+
     *   Thuật toán tối ưu: Gradient Descent (tính đạo hàm và cập nhật $\mathbf{w}, b$)
 
 ### Giải thích Implement bằng NumPy
-*   Toàn bộ các phép toán vector, ma trận (như phép nhân ma trận `np.dot`, tính tổng `np.sum`, tính lũy thừa `np.exp`, tránh tràn số `np.clip`) được sử dụng để cài đặt các công thức toán học trên mà không dùng vòng lặp (Vectorization).
+*   Toàn bộ các phép toán vector, ma trận (như phép nhân ma trận `np.dot`, tính tổng `np.sum`, tính lũy thừa `np.exp`, tránh tràn số `np.clip`) được sử dụng để cài đặt các công thức toán học trong mô hình `Logistic Regression` đã nói đến ở trên.
 *   Sử dụng broadcasting trong cài đặt hàm `One-hot Encoding` để thực hiện tạo ma trận có các mới có số cột là các giá trị duy nhất (unique values) của đặc trưng cần mã hóa và số dòng bằng số dòng dữ liệu.
     - Mảng unique có kích thước $(k, )$
     - Cột dữ liệu của nó có dạng $(n, 1)$
     - Do cơ chế `broadcasting` thì kích thước của mảng unique sẽ biến thành $(1, k)$ và cuối cùng cả 2 sẽ có cùng kích thước $(n, k)$
-*   Sử dụng `np.vectorize` để thao tác trên toàn bộ ma trận không cần vòng lặp.
+*   Sử dụng `np.vectorize` để thao tác trên toàn bộ phần tử của mà ma trận không cần vòng lặp.
 *   Trong cài đặt hàm `Ordinal Encoding` sử dụng fancy indexing, dùng các con số index trong danh sách `inv` để lấy ra Value tương ứng, ...
 
 ## 5. Installation & Setup
@@ -115,7 +117,7 @@ Hướng dẫn cách chạy project theo từng bước
 - Tiền xử lý: Chạy file `notebooks/02_preprocessing.ipynb` để làm sạch, xử lý Missing Values, mã hóa và chuẩn hóa dữ liệu.
 - Xây dựng Mô hình: Chạy file `notebooks/03_modeling.ipynb` để huấn luyện mô hình, đánh giá hiệu suất và đưa ra dự đoán.
 
-**Lưu ý:** Ở mỗi file chỉ cần chọn `Run All` hoặc `Restart & Run All` để chạy toàn bộ cell code.
+**Lưu ý:** Ở mỗi file chỉ cần chọn `Run All` hoặc `Restart & Run All` để chạy toàn bộ notebook.
 
 ## 7. Results
 
@@ -130,28 +132,28 @@ Hướng dẫn cách chạy project theo từng bước
 
 ```
 Credits_Card_customers-Numpy-DS/
-├── README.md
-├── requirements.txt
+├── README.md                   # Tổng quan dự án, hướng dẫn cài đặt & License
+├── requirements.txt            # Danh sách các thư viện cần thiết (numpy, pandas...)
 ├── data/
-│   ├── raw/             
-│   └── processed/       
-├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_preprocessing.ipynb
-│   ├── 03_modeling.ipynb
-│   └── metrics_plot.png
-├── src/
-│   ├── __init__.py
-│   ├── data_processing.py
-│   ├── visualization.py
-│   └── models.py
+│   ├── raw/                    # Dữ liệu thô ban đầu
+│   └── processed/              # Dữ liệu sau khi đã làm sạch và xử lý
+├── notebooks/                  # Nơi chạy thử nghiệm và phân tích
+│   ├── 01_data_exploration.ipynb # Phân tích khám phá dữ liệu (EDA)
+│   ├── 02_preprocessing.ipynb    # Tiền xử lý, chuẩn hóa và chia tập dữ liệu
+│   ├── 03_modeling.ipynb         # Huấn luyện mô hình và đánh giá kết quả
+│   └── metrics_plot.png          # Hình ảnh biểu đồ kết quả
+├── src/                        # Mã nguồn chính (dùng để tái sử dụng)
+│   ├── __init__.py             # Đánh dấu thư mục này là một Python Package
+│   ├── data_processing.py      # Các hàm tải và xử lý dữ liệu
+│   ├── visualization.py        # Các hàm vẽ các biểu đồ Pie, Box, Histogram...
+│   └── models.py               # Cài đặt thuật toán Logistic Regression (chỉ NumPy)
 ```
 
 ## 9. Challenges & Solutions
 
 - Khó khăn 1: Xử lý các biến phân loại/chuỗi chỉ bằng NumPy (không dùng Pandas).
     - Giải pháp: Sử dụng các kỹ thuật như ánh xạ (mapping) thủ công sang giá trị số và sử dụng masking/fancy indexing của NumPy để thực hiện One-Hot Encoding và Ordinal encoding.
-- Khó khăn 2: Đảm bảo Vectorization hoàn toàn, tránh vòng lặp for trong các phép toán số học lớn.
+- Khó khăn 2: Đảm bảo Vectorization hoàn toàn, tránh vòng lặp for trong các thao tác trên ma trận.
     - Giải pháp: Tận dụng tối đa các hàm và kỹ thuật broadcasting, fancy indexing, vectorize của NumPy.
 
 ## 10. Future Improvements
@@ -170,4 +172,6 @@ Contact: caotienthanh1103@gmail.com
 
 ## 12. License
 
-- 
+- MIT License
+
+Copyright (c) 2025 [Cao Tien Thanh]

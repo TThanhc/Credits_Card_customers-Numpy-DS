@@ -10,6 +10,12 @@ def visua_hist(data, title, xlabel, ylabel):
     plt.ylabel(ylabel)
     plt.show()
 
+def visua_bar(data_x, data_y, title):
+    plt.figure()
+    plt.bar(data_x, data_y)
+    plt.xticks(rotation=45)
+    plt.title(title)
+    plt.show()
 
 def visua_boxplot(data, title, xlabel, ylabel):
     # Vẽ boxplot
@@ -20,10 +26,8 @@ def visua_boxplot(data, title, xlabel, ylabel):
     plt.grid(axis='y', linestyle='--', alpha=0.7)
 
 
-def visua_scatter(data_x, data_y, title, xlabel, ylabel):
-    # Vẽ scatter plot
-    plt.scatter(data_x, data_y, alpha=0.3)
+def visua_pie(count, uni_data, title):
+    plt.figure()
+    plt.pie(count, labels=uni_data, autopct='%1.1f%%')
     plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)    
     plt.show()

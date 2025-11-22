@@ -134,10 +134,12 @@ class LogisticRegressionNumPy:
             self.weights -= self.lr * dw
             self.bias -= self.lr * db
 
+    # Hàm đoán xác suất
     def predict_proba(self, X):
         linear_model = np.dot(X, self.weights) + self.bias
         return self._sigmoid(linear_model)
 
+    # Hàm dự đoán nhãn
     def predict(self, X, threshold=0.3):
         y_predicted_cls = self.predict_proba(X)
         return np.array([1 if i > threshold else 0 for i in y_predicted_cls])

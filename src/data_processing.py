@@ -1,15 +1,17 @@
 import numpy as np
 
-
+# Chuẩn hóa dữ liệu
 def normalize_data(data):
     mean = np.mean(data)
     std = np.std(data)
     normalized_data = (data - mean) / std
     return normalized_data
 
+# Bỏ qua các kí tự (") khi đọc dữ liệu dạng str
 def strip_quotes(s):
     return s.strip().strip('"').strip() if isinstance(s, str) else s
 
+# Ép kiểu dữ liệu số INT, FLOAT
 def convert_numeric(x):
     if not isinstance(x, str):
         return x
@@ -31,12 +33,15 @@ def convert_numeric(x):
         # Trả về chuỗi gốc
         return x
 
+# Đọc dữ liệu từ file .csv
 def load_csv(DATA_PATH):
     with open(DATA_PATH, 'r', encoding='utf-8') as f:
         header = f.readline().strip().split(',')
     data = np.genfromtxt(DATA_PATH, delimiter=',', skip_header=1, dtype=str)
     return data, header
 
+# Mã hóa One-hot trả về ma trận gồm các cột là
+# các giá trị duy nhất, và tên các cột đó
 def one_hot_encoding(col):
     unique_vals = np.unique(col)
     col_reshaped = col.reshape(-1, 1) 
@@ -44,7 +49,8 @@ def one_hot_encoding(col):
     
     return boolean_matrix.astype(int), unique_vals
 
-def ordinal_encoding(col_idx, col_dict, col):
+# Mã hóa có thứ tự, theo từ điển định nghĩa trước
+def ordinal_encoding(col_dict, col):
     col_keys = np.array(list(col_dict.keys()))
     col_values = np.array(list(col_dict.values()))
     sort_idx = np.argsort(col_keys)
