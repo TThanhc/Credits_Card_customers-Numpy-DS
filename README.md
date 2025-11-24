@@ -1,4 +1,4 @@
-# HOMEWORK 2: NUMPY FOR DATA SCIENCE - PHÂN TÍCH KHẢ NĂNG RỜI ĐI CỦA KHÁCH HÀNG
+# NUMPY FOR DATA SCIENCE - PHÂN TÍCH KHẢ NĂNG RỜI ĐI CỦA KHÁCH HÀNG
 
 ## 🔍Mục lục
 1.  [Tiêu đề và Mô tả ngắn gọn](#1-tiêu-đề-và-mô-tả-ngắn-gọn)
