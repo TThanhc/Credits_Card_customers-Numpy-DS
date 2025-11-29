@@ -1,5 +1,35 @@
 import numpy as np
 
+# HÀM TÍNH TOÁN ROC & AUC
+def calculate_roc_auc(y_true, y_probs):
+    # Sắp xếp xác suất và nhãn thực tế theo thứ tự giảm dần của xác suất
+    desc_score_indices = np.argsort(y_probs)[::-1]
+    y_score_desc = y_probs[desc_score_indices]
+    y_true_desc = y_true[desc_score_indices]
+
+    # Tổng số lượng Positive (P) và Negative (N) thực tế
+    P = np.sum(y_true)
+    N = len(y_true) - P
+
+    # Tính TP (True Positive) tích lũy và FP (False Positive) tích lũy
+    # Khi hạ dần ngưỡng threshold từ 1.0 xuống 0.0
+    tps = np.cumsum(y_true_desc)
+    fps = np.arange(1, len(y_true) + 1) - tps
+    
+    # Tính TPR và FPR
+    tpr_values = tps / P
+    fpr_values = fps / N
+    
+    # Thêm điểm (0,0) vào đầu để đường cong bắt đầu từ gốc tọa độ
+    tpr = np.concatenate(([0], tpr_values))
+    fpr = np.concatenate(([0], fpr_values))
+    
+    # Tính AUC bằng quy tắc hình thang (Trapezoidal rule)
+    auc = np.trapz(tpr, fpr)
+    
+    return fpr, tpr, auc
+
+# HÀM STRATIFIED K-FOLD split CHIA DỮ LIỆU THÀNH CÁC TẬP TRAIN VÀ TEST
 def stratified_k_fold_split(X, y, k=5):
     # Lấy index của từng lớp
     class0_idx = np.where(y == 0)[0] # Existing Customer
@@ -25,11 +55,14 @@ def stratified_k_fold_split(X, y, k=5):
     
     return folds # (train_idx, val_idx)
 
-
+# --- HÀM STRATIFIED K-FOLD CROSS VALIDATION VỚI LOGISTIC REGRESSION ---
 def stratified_k_fold_cross_validation(X, y, k=5, learning_rate=0.1, num_iterations=2000):
     folds = stratified_k_fold_split(X, y, k=k)
     
     accuracies, precisions, recalls, f1s = [], [], [], []
+
+    # Tạo mảng FPR chung để tính trung bình (interpolate)
+    roc_data_list = []
     
     for i, (train_idx, val_idx) in enumerate(folds):
         X_train, X_val = X[train_idx], X[val_idx]
@@ -43,13 +76,21 @@ def stratified_k_fold_cross_validation(X, y, k=5, learning_rate=0.1, num_iterati
         
         predictions = model.predict(X_val)
         acc, prec, rec, f1 = evaluate_metrics(y_val, predictions)
-        
+
         accuracies.append(acc)
         precisions.append(prec)
         recalls.append(rec)
         f1s.append(f1)
         
-        print(f"Fold {i+1}: Acc={acc:.4f}, Precision={prec:.4f}, Recall={rec:.4f}, F1={f1:.4f}")
+        # 2. Dự đoán xác suất (để vẽ ROC)
+        y_probs = model.predict_proba(X_val)
+        fpr, tpr, auc = calculate_roc_auc(y_val, y_probs)
+        
+        # Lưu dữ liệu vẽ biểu đồ vào dictionary
+        roc_data_list.append((fpr,tpr,auc))
+        
+
+        print(f"Fold {i+1}: Acc={acc:.4f}, Precision={prec:.4f}, Recall={rec:.4f}, F1={f1:.4f}, AUC={auc:.4f}")
     
     print("\n--- AVERAGE RESULTS ---")
     print(f"Accuracy : {np.mean(accuracies): .4f}")
@@ -57,10 +98,10 @@ def stratified_k_fold_cross_validation(X, y, k=5, learning_rate=0.1, num_iterati
     print(f"Recall   : {np.mean(recalls): .4f}")
     print(f"F1-score : {np.mean(f1s): .4f}")
     
-    return model, accuracies, precisions, recalls, f1s
+    return model, accuracies, precisions, recalls, f1s, roc_data_list
 
 
-
+# --- HÀM ĐÁNH GIÁ MÔ HÌNH VỚI CÁC ĐỘ ĐO ---
 def evaluate_metrics(y_true, y_pred):
     # y_true = 1 và y_pred = 1
     tp = np.sum((y_true == 1) & (y_pred == 1)) # True Positive
@@ -88,7 +129,7 @@ def evaluate_metrics(y_true, y_pred):
     
     return accuracy, precision, recall, f1
 
-# Mô hình LogisticRegressionNumPy
+# --- MÔ HÌNH LogisticRegression CHỈ SỬ DỤNG NumPy ---
 class LogisticRegressionNumPy:
     def __init__(self, learning_rate=0.01, num_iterations=1000):
         self.lr = learning_rate

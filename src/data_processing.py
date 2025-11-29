@@ -1,13 +1,13 @@
 import numpy as np
 
-# Chuẩn hóa dữ liệu
+# HÀM CHUẨN HÓA DỮ LIỆU
 def normalize_data(data):
     mean = np.mean(data)
     std = np.std(data)
     normalized_data = (data - mean) / std
     return normalized_data
 
-# Bỏ qua các kí tự (") khi đọc dữ liệu dạng str
+# BỎ KHOẢNG TRẮNG VÀ DẤU NGOẶC KÉP (") Ở ĐẦU CUỐI CHUỖI
 def strip_quotes(s):
     return s.strip().strip('"').strip() if isinstance(s, str) else s
 
@@ -33,15 +33,15 @@ def convert_numeric(x):
         # Trả về chuỗi gốc
         return x
 
-# Đọc dữ liệu từ file .csv
+# ĐỌC DỮ LIỆU TỪ FILE CSV
 def load_csv(DATA_PATH):
     with open(DATA_PATH, 'r', encoding='utf-8') as f:
         header = f.readline().strip().split(',')
     data = np.genfromtxt(DATA_PATH, delimiter=',', skip_header=1, dtype=str)
     return data, header
 
-# Mã hóa One-hot trả về ma trận gồm các cột là
-# các giá trị duy nhất, và tên các cột đó
+# MÃ HÓA ONE-HOT ENCODING
+# TRẢ VỀ MA TRẬN GỒM CÁC CỘT LÀ GIÁ TRỊ DUY NHẤT VÀ SỐ HÀNG DỮ LIỆU BAN ĐẦU
 def one_hot_encoding(col):
     unique_vals = np.unique(col)
     col_reshaped = col.reshape(-1, 1) 
@@ -49,7 +49,8 @@ def one_hot_encoding(col):
     
     return boolean_matrix.astype(int), unique_vals
 
-# Mã hóa có thứ tự, theo từ điển định nghĩa trước
+# MÃ HÓA ORDINAL ENCODING
+# THEO THỨ TỰ ĐỊNH NGHĨA TRONG TỪ ĐIỂN TRUYỀN VÀO
 def ordinal_encoding(col_dict, col):
     col_keys = np.array(list(col_dict.keys()))
     col_values = np.array(list(col_dict.values()))
