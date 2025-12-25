@@ -112,7 +112,9 @@ Các đặc trưng chính:
 ## 5. Installation & Setup
 
 ### Tạo môi trường ảo
+```bash
 python -m venv venv
+```
 
 ### Kích hoạt môi trường
 
