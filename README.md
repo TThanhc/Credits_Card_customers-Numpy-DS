@@ -1,27 +1,27 @@
-# NUMPY FOR DATA SCIENCE - PHÂN TÍCH KHẢ NĂNG RỜI ĐI CỦA KHÁCH HÀNG
+# NUMPY FOR DATA SCIENCE - CREDIT CARD CUSTOMER CHURN PREDICTION
 
-## 🔍Mục lục
-1.  [Tiêu đề và Mô tả ngắn gọn](#1-tiêu-đề-và-mô-tả-ngắn-gọn)
-2.  [Giới thiệu](#2-giới-thiệu)
-    *   [Mô tả Bài toán](#mô-tả-bài-toán)
-    *   [Động lực và Ứng dụng thực tế](#động-lực-và-ứng-dụng-thực-tế)
-    *   [Mục tiêu cụ thể](#mục-tiêu-cụ-thể)
+## 🔍 Table of Contents
+1.  [Title and Brief Description](#1-title-and-brief-description)
+2.  [Introduction](#2-introduction)
+    *   [Problem Description](#problem-description)
+    *   [Motivation and Real-World Application](#motivation-and-real-world-application)
+    *   [Specific Objectives](#specific-objectives)
 3.  [Dataset](#3-dataset)
-    *   [Nguồn Dữ liệu](#nguồn-dữ-liệu)
-    *   [Mô tả Features](#mô-tả-features)
-    *   [Kích thước và Đặc điểm Dữ liệu](#kích-thước-và-đặc-điểm-dữ-liệu)
+    *   [Data Source](#data-source)
+    *   [Feature Description](#feature-description)
+    *   [Data Size and Characteristics](#data-size-and-characteristics)
 4.  [Method](#4-method)
-    *   [Quy trình Xử lý Dữ liệu](#quy-trình-xử-lý-dữ-liệu)
-    *   [Thuật toán sử dụng](#thuật-toán-sử-dụng)
-    *   [Giải thích Implement bằng NumPy](#giải-thích-implement-bằng-numpy)
+    *   [Data Processing Workflow](#data-processing-workflow)
+    *   [Algorithms Used](#algorithms-used)
+    *   [NumPy Implementation Explanation](#numpy-implementation-explanation)
 5.  [Installation & Setup](#5-installation--setup)
-    * [Tạo môi trường ảo](#tạo-môi-trường-ảo)
-    * [Kích hoạt môi trường](#kích-hoạt-môi-trường)
-    * [Cài đặt các thư viện cần thiết](#cài-đặt-các-thư-viện-cần-thiết)
+    * [Create Virtual Environment](#create-virtual-environment)
+    * [Activate Environment](#activate-environment)
+    * [Install Required Libraries](#install-required-libraries)
 6.  [Usage](#6-usage)
 7.  [Results](#7-results)
-    * [Các độ đo đánh giá (Metrics)](#các-độ-đo-đánh-giá-metrics)
-    * [Đường cong Receiver Operating Characteristic (ROC)](#đường-cong-receiver-operating-characteristic-roc)
+    * [Evaluation Metrics](#evaluation-metrics)
+    * [Receiver Operating Characteristic (ROC) Curve](#receiver-operating-characteristic-roc-curve)
 8.  [Project Structure](#8-project-structure)
 9.  [Challenges & Solutions](#9-challenges--solutions)
 10. [Future Improvements](#10-future-improvements)
@@ -30,183 +30,227 @@
 
 ---
 
-## 1. Tiêu đề và Mô tả ngắn gọn
+## 🔄 Workflow Pipeline Architecture
 
-**Tiêu đề:** Xây dựng Mô hình Dự đoán Khách hàng Rời đi đầu vào là thông tin khách hàng tín dụng.
+```mermaid
+flowchart TB
+    Start([Start]) --> LoadData[Load Raw Data<br/>BankChurners.csv]
+    LoadData --> EDA[Exploratory Data Analysis<br/>01_data_exploration.ipynb]
+    
+    EDA --> CheckMissing{Check Missing<br/>Values?}
+    CheckMissing -->|Yes| HandleMissing[Handle Missing Values<br/>using NumPy]
+    CheckMissing -->|No| CheckOutliers
+    HandleMissing --> CheckOutliers{Detect<br/>Outliers?}
+    
+    CheckOutliers -->|Yes| HandleOutliers[Handle Outliers<br/>Z-score/IQR method]
+    CheckOutliers -->|No| FeatureEng
+    HandleOutliers --> FeatureEng[Feature Engineering<br/>02_preprocessing.ipynb]
+    
+    FeatureEng --> Encoding[Encode Categorical Variables<br/>One-Hot/Ordinal Encoding]
+    Encoding --> Normalize[Normalize/Standardize<br/>Numerical Features]
+    Normalize --> Split[Split Dataset<br/>Train/Test Sets]
+    
+    Split --> Model[Build Logistic Regression<br/>NumPy Implementation<br/>03_modeling.ipynb]
+    Model --> Train[Train Model<br/>Gradient Descent]
+    Train --> CrossVal[Stratified 5-Fold<br/>Cross-Validation]
+    
+    CrossVal --> Evaluate[Evaluate Model<br/>Accuracy, Precision<br/>Recall, F1-Score]
+    Evaluate --> ROC[Generate ROC Curve<br/>Calculate AUC]
+    
+    ROC --> SaveResults[Save Results<br/>metrics_plot.png<br/>roc_curve_plot.png]
+    SaveResults --> SaveProcessed[Save Processed Data<br/>data/processed/]
+    SaveProcessed --> End([End])
+    
+    style Start fill:#90EE90
+    style End fill:#FFB6C1
+    style Model fill:#87CEEB
+    style Train fill:#87CEEB
+    style Evaluate fill:#FFD700
+    style ROC fill:#FFD700
+```
 
-**Mô tả ngắn gọn:** Project này nhằm mục đích xây dựng một mô hình học máy đơn giản để dự đoán khả năng một khách hàng thẻ tín dụng sẽ rời bỏ ngân hàng dựa trên dữ liệu khách hàng và lịch sử giao dịch. Toàn bộ quá trình tiền xử lý, tính toán và xây dựng mô hình. Không được sử dụng `Pandas` mà chỉ sử dụng `Numpy` cho các thao tác liên quan.
+---
 
-## 2. Giới thiệu
+## 1. Title and Brief Description
 
-### Mô tả Bài toán
-Bài toán là một nhiệm vụ **phân loại (Classification)**: Dựa trên các thông tin về khách hàng (giới tính, độ tuổi, thu nhập, tình trạng hôn nhân, chỉ số tín dụng, v.v.) và hoạt động thẻ (số lượng giao dịch, tổng chi tiêu), dự đoán xem tài khoản của khách hàng đó **đã rời đi (Attrited)** hay **còn tồn tại (Existing)**.
+**Title:** Building a Customer Churn Prediction Model Using Credit Card Customer Information
 
-### Động lực và Ứng dụng thực tế
-Việc dự đoán khách hàng rời đi (Attrited Customer Prediction) là tối quan trọng trong ngành Ngân hàng và Tài chính.
-*   **Động lực:** Chi phí để giữ chân một khách hàng hiện tại thấp hơn nhiều so với chi phí thu hút một khách hàng mới.
-*   **Ứng dụng:** Mô hình dự đoán giúp ngân hàng xác định sớm những khách hàng có nguy cơ rời đi cao, từ đó triển khai các chiến lược giữ chân (Retention Strategies) kịp thời như cung cấp ưu đãi đặc biệt, cải thiện dịch vụ chăm sóc khách hàng.
+**Brief Description:** This project aims to build a simple machine learning model to predict the likelihood of a credit card customer leaving the bank based on customer data and transaction history. The entire preprocessing, computation, and model building process is implemented using `NumPy` only, without using `Pandas` for data operations.
 
-### Mục tiêu cụ thể
-1.  **Thành thạo NumPy:** Sử dụng `NumPy` hiệu quả cho tất cả các tác vụ xử lý dữ liệu dạng bảng.
-2.  **Phân tích Dữ liệu:** Đặt và trả lời các câu hỏi về dữ liệu thông qua thống kê mô tả và trực quan hóa (Matplotlib/Seaborn).
-3.  **Xây dựng Mô hình (Core/Nâng cao):**
-    *   **Core:** Chỉ sử dụng `Numpy` (hoặc sử dụng Scikit-learn) để xây dựng mô hình phân loại (ví dụ: Logistic Regression).
-4.  **Trực quan hóa:** Minh họa kết quả phân tích và hiệu suất mô hình bằng Matplotlib và Seaborn.
+## 2. Introduction
+
+### Problem Description
+This is a **Classification** task: Based on customer information (gender, age, income, marital status, credit score, etc.) and card activity (number of transactions, total spending), predict whether the customer's account is **Attrited** or **Existing**.
+
+### Motivation and Real-World Application
+Predicting customer churn (Attrited Customer Prediction) is critical in the Banking and Finance industry.
+*   **Motivation:** The cost of retaining an existing customer is significantly lower than acquiring a new one.
+*   **Application:** The prediction model helps banks identify high-risk customers early, enabling timely deployment of retention strategies such as offering special incentives and improving customer service.
+
+### Specific Objectives
+1.  **Master NumPy:** Efficiently use `NumPy` for all tabular data processing tasks.
+2.  **Data Analysis:** Formulate and answer questions about data through descriptive statistics and visualization (Matplotlib/Seaborn).
+3.  **Model Building (Core/Advanced):**
+    *   **Core:** Use only `NumPy` (or Scikit-learn) to build classification models (e.g., Logistic Regression).
+4.  **Visualization:** Illustrate analysis results and model performance using Matplotlib and Seaborn.
 
 ## 3. Dataset
 
-### Nguồn Dữ liệu
-*   **Tên:** Credit Card customers
-*   **Nguồn:** [Kaggle - Credit Card customers](https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers)
-*   **Mô tả:** Dữ liệu chứa thông tin chi tiết về khách hàng thẻ tín dụng của một ngân hàng, bao gồm các chỉ số nhân khẩu học, chỉ số tín dụng, và tình trạng tài khoản.
+### Data Source
+*   **Name:** Credit Card customers
+*   **Source:** [Kaggle - Credit Card customers](https://www.kaggle.com/datasets/sakshigoyal7/credit-card-customers)
+*   **Description:** The dataset contains detailed information about credit card customers of a bank, including demographic indicators, credit scores, and account status.
 
-### Mô tả Features
-Các đặc trưng chính:
-*   `CLIENTNUM`: Số khách hàng (ID duy nhất).
-*   `Attrition_Flag`: Biến mục tiêu (Existing Customer / Attrited Customer).
-*   `Customer_Age`: Tuổi của khách hàng.
-*   `Gender`: Giới tính.
-*   `Dependent_count`: Số người phụ thuộc.
-*   `Income_Category`: Mức thu nhập hàng năm.
-*   `Card_Category`: Loại thẻ tín dụng (Blue, Silver, Gold, Platinum).
-*   `Credit_Limit`: Hạn mức tín dụng.
-*   `Total_Trans_Amt`: Tổng số tiền giao dịch (trong 12 tháng).
-*   `Total_Trans_Ct`: Tổng số lượng giao dịch (trong 12 tháng).
+### Feature Description
+Key features:
+*   `CLIENTNUM`: Customer number (unique ID).
+*   `Attrition_Flag`: Target variable (Existing Customer / Attrited Customer).
+*   `Customer_Age`: Customer's age.
+*   `Gender`: Gender.
+*   `Dependent_count`: Number of dependents.
+*   `Income_Category`: Annual income level.
+*   `Card_Category`: Credit card type (Blue, Silver, Gold, Platinum).
+*   `Credit_Limit`: Credit limit.
+*   `Total_Trans_Amt`: Total transaction amount (in 12 months).
+*   `Total_Trans_Ct`: Total number of transactions (in 12 months).
 *   ...
 
-### Kích thước và Đặc điểm Dữ liệu
-*   **Kích thước:** Ví dụ: 10127 hàng, 23 cột.
-*   **Đặc điểm:** Dữ liệu bao gồm các cột dạng số (Age, Credit Limit, Total Trans Amt, ...) và cột dạng phân loại (Gender, Income Category, Card Category). Cần xử lý Missing Values, mã hóa dữ liệu phân loại và chuẩn hóa/điều chuẩn dữ liệu số.
+### Data Size and Characteristics
+*   **Size:** 10,127 rows, 23 columns.
+*   **Characteristics:** The data includes numerical columns (Age, Credit Limit, Total Trans Amt, ...) and categorical columns (Gender, Income Category, Card Category). Requires handling of Missing Values, encoding categorical data, and normalization/standardization of numerical data.
 
 ## 4. Method
 
-### Quy trình Xử lý Dữ liệu
-1.  **Đọc/Load Dữ liệu:** Sử dụng hàm của NumPy (`np.genfromtxt`) để đọc dữ liệu từ file.
-2.  **Tiền xử lý:**
-    *   Kiểm tra và xử lý Missing Values.
-    *   Xử lý giá trị ngoại lai (Outliers) bằng các kỹ thuật thống kê (ví dụ: Z-score, IQR).
-    *   Mã hóa biến phân loại (Label Encoding, One-Hot Encoding, Ordinal Encoding) bằng các thao tác mảng của NumPy.
-    *   Thêm các đặc trưng mới có mối quan hệ liên quan (Feature engineering)
-3.  **Tách Dữ liệu:** Chia dữ liệu thành tập huấn luyện (Training set) và tập kiểm tra (Testing set).
+### Data Processing Workflow
+1.  **Load Data:** Use NumPy functions (`np.genfromtxt`) to read data from files.
+2.  **Preprocessing:**
+    *   Check and handle Missing Values.
+    *   Handle outliers using statistical techniques (e.g., Z-score, IQR).
+    *   Encode categorical variables (Label Encoding, One-Hot Encoding, Ordinal Encoding) using NumPy array operations.
+    *   Add new related features (Feature engineering)
+3.  **Split Data:** Divide data into training set and testing set.
 
-### Thuật toán sử dụng
-*   **Thuật toán:** `Logistic Regression`.
-*   **Công thức toán học cho Logistic Regression:**
-    *   Hàm tuyến tính: $z = \mathbf{w}^T \mathbf{x} + b$
-    *   Hàm Sigmoid (Hàm kích hoạt): $\sigma(z) = \frac{1}{1 + e^{-z}}$
-    *   Hàm mất mát (Binary Cross-Entropy): 
+### Algorithms Used
+*   **Algorithm:** `Logistic Regression`.
+*   **Mathematical formulas for Logistic Regression:**
+    *   Linear function: $z = \mathbf{w}^T \mathbf{x} + b$
+    *   Sigmoid function (Activation function): $\sigma(z) = \frac{1}{1 + e^{-z}}$
+    *   Loss function (Binary Cross-Entropy): 
     
     $L(\mathbf{w}, b) = -\frac{1}{m} \sum_{i=1}^{m} [y^{(i)} \log(\hat{y}^{(i)}) + (1 - y^{(i)}) \log(1 - \hat{y}^{(i)})]$
 
-    *   Thuật toán tối ưu: Gradient Descent (tính đạo hàm và cập nhật $\mathbf{w}, b$)
+    *   Optimization algorithm: Gradient Descent (compute derivatives and update $\mathbf{w}, b$)
 
-### Giải thích Implement bằng NumPy
-*   Toàn bộ các phép toán vector, ma trận (như phép nhân ma trận `np.dot`, tính tổng `np.sum`, tính lũy thừa `np.exp`, tránh tràn số `np.clip`) được sử dụng để cài đặt các công thức toán học trong mô hình `Logistic Regression` đã nói đến ở trên.
-*   Sử dụng broadcasting trong cài đặt hàm `One-hot Encoding` để thực hiện tạo ma trận có các mới có số cột là các giá trị duy nhất (unique values) của đặc trưng cần mã hóa và số dòng bằng số dòng dữ liệu.
-    - Mảng unique có kích thước $(k, )$
-    - Cột dữ liệu của nó có dạng $(n, 1)$
-    - Do cơ chế `broadcasting` thì kích thước của mảng unique sẽ biến thành $(1, k)$ và cuối cùng cả 2 sẽ có cùng kích thước $(n, k)$
-*   Sử dụng `np.vectorize` để thao tác trên toàn bộ phần tử của mà ma trận không cần vòng lặp.
-*   Trong cài đặt hàm `Ordinal Encoding` sử dụng fancy indexing, dùng các con số index trong danh sách `inv` để lấy ra Value tương ứng, ...
+### NumPy Implementation Explanation
+*   All vector and matrix operations (such as matrix multiplication `np.dot`, summation `np.sum`, exponentiation `np.exp`, overflow prevention `np.clip`) are used to implement the mathematical formulas in the `Logistic Regression` model mentioned above.
+*   Use broadcasting in the `One-hot Encoding` function to create a matrix with new columns representing unique values of the feature to be encoded, with the number of rows equal to the number of data rows.
+    - The unique array has size $(k, )$
+    - The data column has shape $(n, 1)$
+    - Due to the `broadcasting` mechanism, the unique array size becomes $(1, k)$ and finally both will have the same size $(n, k)$
+*   Use `np.vectorize` to operate on all elements of the matrix without loops.
+*   In the `Ordinal Encoding` function implementation, use fancy indexing with index numbers in the `inv` list to retrieve corresponding values, ...
 
 ## 5. Installation & Setup
 
-### Tạo môi trường ảo
+### Create Virtual Environment
+```bash
 python -m venv venv
+```
 
-### Kích hoạt môi trường
+### Activate Environment
 
->> Đối với Windows (Command Prompt):
+**For Windows (Command Prompt):**
 ```bash
 venv\Scripts\activate.bat
 ```
->> Đối với Windows (PowerShell):
+**For Windows (PowerShell):**
 ```bash
 .\venv\Scripts\Activate.ps1
 ```
 
->> Đối với macOS / Linux:
+**For macOS / Linux:**
 ```bash
 source venv/bin/activate
 ```
 
-### Cài đặt các thư viện cần thiết:
+### Install Required Libraries:
 ```bash
 pip install -r requirements.txt
 ```
+
 ## 6. Usage
 
-Hướng dẫn cách chạy project theo từng bước
-- Khám phá Dữ liệu: Chạy file `notebooks/01_data_exploration.ipynb` để hiểu về dữ liệu, thống kê mô tả, và các biểu đồ phân tích ban đầu.
-- Tiền xử lý: Chạy file `notebooks/02_preprocessing.ipynb` để làm sạch, xử lý Missing Values, mã hóa và chuẩn hóa dữ liệu.
-- Xây dựng Mô hình: Chạy file `notebooks/03_modeling.ipynb` để huấn luyện mô hình, đánh giá hiệu suất và đưa ra dự đoán.
+Step-by-step instructions to run the project:
+- **Data Exploration:** Run [notebooks/01_data_exploration.ipynb](notebooks/01_data_exploration.ipynb) to understand the data, descriptive statistics, and initial analysis charts.
+- **Preprocessing:** Run [notebooks/02_preprocessing.ipynb](notebooks/02_preprocessing.ipynb) to clean, handle Missing Values, encode, and normalize data.
+- **Model Building:** Run [notebooks/03_modeling.ipynb](notebooks/03_modeling.ipynb) to train the model, evaluate performance, and make predictions.
 
-**Lưu ý:** Ở mỗi file chỉ cần chọn `Run All` hoặc `Restart & Run All` để chạy toàn bộ notebook.
+**Note:** For each file, simply select `Run All` or `Restart & Run All` to execute the entire notebook.
 
 ## 7. Results
 
-### Các độ đo đánh giá (Metrics)
+### Evaluation Metrics
 
 ![Stratified 5-Fold Cross-Validation Metrics](notebooks/metrics_plot.png)
 
-- `Logistic Regression` kết hợp với `Stratified 5-Fold Cross-Validation` cho thấy mô hình hoạt động ổn định và đáng tin cậy trong dự đoán khách hàng rời đi tuy mô hình phân loại tốt nhóm khách hàng hiện tại (Existing), nhưng vẫn có sự nhầm lẫn nhỏ ở nhóm khách hàng rời bỏ (Attrited).
+- `Logistic Regression` combined with `Stratified 5-Fold Cross-Validation` shows that the model operates stably and reliably in predicting customer churn. While the model classifies Existing customers well, there is minor confusion with Attrited customers.
 
-- `Precision` phù hợp giúp tránh báo động nhầm, trong khi `Recall` rất quan trọng nhất đối với bài toán giữ chân khách hàng – đạt mức khả quan, thể hiện khả năng phát hiện các khách hàng có nguy cơ rời đi. 
+- `Precision` helps avoid false alarms, while `Recall` is crucial for customer retention problems – achieving promising levels, demonstrating the model's ability to detect at-risk customers. 
 
-- `F1-score` cao củng cố thêm tính hiệu quả của mô hình trong điều kiện dữ liệu mất cân bằng. 
+- High `F1-score` further reinforces the model's effectiveness under imbalanced data conditions. 
 
-### Đường cong **Receiver Operating Characteristic** (ROC)
+### Receiver Operating Characteristic (ROC) Curve
 
 ![Receiver Operating Characteristic (ROC) Curve](notebooks/roc_curve_plot.png)
 
-- **Hiệu năng xuất sắc:** Chỉ số **Mean AUC đạt ~0.94** cho thấy mô hình có khả năng phân loại giữa khách hàng "Rời đi" và "Ở lại" tốt hơn gấp nhiều lần so với đoán mò. Điều này củng cố cho kết quả `F1-score` cao ở trên, chứng tỏ mô hình không chỉ đúng tại một điểm mà hoạt động tốt trên toàn miền dữ liệu.
+- **Excellent Performance:** The **Mean AUC of ~0.94** shows that the model's ability to classify between "Attrited" and "Existing" customers is significantly better than random guessing. This reinforces the high `F1-score` above, proving the model not only performs well at one point but across the entire data range.
 
-- **Tính ổn định cao:** Các đường ROC của từng Fold (nét mờ) nằm rất sát đường trung bình và độ lệch chuẩn nhỏ. Điều này đồng nhất với sự ổn định của các cột `Accuracy` và `Recall` trong biểu đồ **Metrics**, khẳng định mô hình không bị hiện tượng quá khớp (overfitting).
+- **High Stability:** The ROC curves of each Fold (faded lines) are very close to the average curve with small standard deviation. This is consistent with the stability of the `Accuracy` and `Recall` columns in the **Metrics** chart, confirming the model does not suffer from overfitting.
 
-- **Tối ưu hóa Recall:** Đường cong có dạng dốc đứng ngay từ đầu trục hoành, cho thấy mô hình có thể đạt được `Recall` cao (bắt đúng khách rời bỏ) mà vẫn giữ tỷ lệ báo động giả (False Positive) ở mức thấp.
+- **Recall Optimization:** The curve has a steep shape from the beginning of the horizontal axis, showing that the model can achieve high `Recall` (correctly catching churned customers) while keeping the False Positive rate low.
 
-**Kết luận chung:** Mô hình **Logistic Regression** là lựa chọn phù hợp và hiệu quả cho bài toán.
+**Overall Conclusion:** The **Logistic Regression** model is a suitable and effective choice for this problem.
 
 ## 8. Project Structure
 
 ```
 Credits_Card_customers-Numpy-DS/
-├── README.md                   # Tổng quan dự án, hướng dẫn cài đặt & License
-├── requirements.txt            # Danh sách các thư viện cần thiết (numpy, pandas...)
+├── README.md                   # Project overview, installation guide & License
+├── requirements.txt            # List of required libraries (numpy, pandas...)
 ├── data/
-│   ├── raw/                    # Dữ liệu thô ban đầu
-│   └── processed/              # Dữ liệu sau khi đã làm sạch và xử lý
-├── notebooks/                  # Nơi chạy thử nghiệm và phân tích
-│   ├── 01_data_exploration.ipynb # Phân tích khám phá dữ liệu (EDA)
-│   ├── 02_preprocessing.ipynb  # Tiền xử lý, chuẩn hóa và chia tập dữ liệu
-│   ├── 03_modeling.ipynb       # Huấn luyện mô hình và tính toán các độ đo đánh giá
-│   ├── metrics_plot.png        # Trực quán hóa các độ đo đánh giá bằng biểu đồ
-│   └── roc_curve_plot.png      # Đường cong đánh giá khả năng phân loại của mô hình
-├── src/                        # Mã nguồn chính (dùng để tái sử dụng)
-│   ├── __init__.py             # Đánh dấu thư mục này là một Python Package
-│   ├── data_processing.py      # Các hàm tải và xử lý dữ liệu
-│   ├── visualization.py        # Các hàm vẽ các biểu đồ Pie, Box, Histogram...
-│   └── models.py               # Cài đặt thuật toán Logistic Regression (chỉ NumPy)
+│   ├── raw/                    # Raw initial data
+│   └── processed/              # Data after cleaning and processing
+├── notebooks/                  # Experimental and analysis workspace
+│   ├── 01_data_exploration.ipynb # Exploratory Data Analysis (EDA)
+│   ├── 02_preprocessing.ipynb  # Preprocessing, normalization, and dataset splitting
+│   ├── 03_modeling.ipynb       # Model training and evaluation metrics calculation
+│   ├── metrics_plot.png        # Visualization of evaluation metrics
+│   └── roc_curve_plot.png      # ROC curve for model classification assessment
+├── src/                        # Main source code (for reuse)
+│   ├── __init__.py             # Marks this directory as a Python Package
+│   ├── data_processing.py      # Functions for loading and processing data
+│   ├── visualization.py        # Functions for creating Pie, Box, Histogram charts...
+│   └── models.py               # Logistic Regression algorithm implementation (NumPy only)
 ```
 
 ## 9. Challenges & Solutions
 
-- Khó khăn 1: Xử lý các biến phân loại/chuỗi chỉ bằng NumPy (không dùng Pandas).
-    - Giải pháp: Sử dụng các kỹ thuật như ánh xạ (mapping) thủ công sang giá trị số và sử dụng masking/fancy indexing của NumPy để thực hiện One-Hot Encoding và Ordinal encoding.
-- Khó khăn 2: Đảm bảo Vectorization hoàn toàn, tránh vòng lặp for trong các thao tác trên ma trận.
-    - Giải pháp: Tận dụng tối đa các hàm và kỹ thuật broadcasting, fancy indexing, vectorize của NumPy.
+- **Challenge 1:** Processing categorical/string variables using only NumPy (without Pandas).
+    - **Solution:** Use techniques like manual mapping to numerical values and NumPy's masking/fancy indexing to implement One-Hot Encoding and Ordinal encoding.
+- **Challenge 2:** Ensuring complete vectorization, avoiding for loops in matrix operations.
+    - **Solution:** Maximize the use of NumPy functions and techniques like broadcasting, fancy indexing, and vectorize.
 
 ## 10. Future Improvements
 
-- Thử nghiệm các kỹ thuật giảm chiều dữ liệu (ví dụ: PCA - tự implement bằng NumPy).
-- Cải tiến thuật toán tối ưu (ví dụ: dùng Adam thay vì Gradient Descent đơn thuần).
-- Thử nghiệm các mô hình phức tạp hơn (ví dụ: Linear Discriminant Analysis - LDA).
+- Experiment with dimensionality reduction techniques (e.g., PCA - self-implemented using NumPy).
+- Improve optimization algorithms (e.g., using Adam instead of pure Gradient Descent).
+- Experiment with more complex models (e.g., Linear Discriminant Analysis - LDA).
 
 ## 11. Contributors
 
-Tên: Cao Tiến Thành
+Name: Cao Tiến Thành
 
-MSSV: 23120088
+Student ID: 23120088
 
 Contact: caotienthanh1103@gmail.com
 
