@@ -156,6 +156,7 @@ Key features:
 ```bash
 python -m venv venv
 ```
+```
 
 ### Activate Environment
 
